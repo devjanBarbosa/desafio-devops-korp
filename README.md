@@ -8,6 +8,7 @@ Solução completa de engenharia de infraestrutura, observabilidade e automaçã
 
 A solução é composta por 4 componentes conteinerizados sob uma rede bridge dedicada (`korp-network`), operando sob o princípio do menor privilégio e isolamento de borda:
 
+```mermaid
 flowchart TD
     subgraph Host [HOST MACHINE / PORTAS EXPOSTAS]
         direction LR
@@ -21,7 +22,7 @@ flowchart TD
         Nginx["🌐 nginx-proxy"]
         Prom["📊 prometheus"]
         Grafana["📈 grafana"]
-        API["⚙️ http-server-projeto-korp\n(Go 1.22 + SDK)"]
+        API["⚙️ http-server-projeto-korp<br/>(Go 1.22 + SDK)"]
     end
 
     %% Entradas do Host
@@ -30,15 +31,16 @@ flowchart TD
     P3000 --> Grafana
 
     %% Comunicação Interna
-    Nginx -- proxy_pass :8080 --> API
-    Prom -- scrape /metrics (5s) --> API
-    Grafana -- query (PromQL) --> Prom
+    Nginx -- "proxy_pass :8080" --> API
+    Prom -- "scrape /metrics (5s)" --> API
+    Grafana -- "query (PromQL)" --> Prom
 
-    %% Estilos (Opcional para dar destaque)
+    %% Estilos
     style API fill:#00ADD8,stroke:#333,stroke-width:2px,color:#fff
     style Nginx fill:#009639,stroke:#333,stroke-width:2px,color:#fff
     style Prom fill:#E6522C,stroke:#333,stroke-width:2px,color:#fff
     style Grafana fill:#F46800,stroke:#333,stroke-width:2px,color:#fff
+```
 
 ### Componentes e Decisões de Design
 
