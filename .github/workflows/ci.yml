@@ -7,9 +7,32 @@ on:
     branches: [ "main" ]
 
 jobs:
-  validate-and-deploy:
+  code-quality-and-security:
+    name: Code Quality & Linting
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
+      - name: Setup Go 1.22
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: app/go.sum
+
+      - name: Run Go Vet & Format Check
+        run: |
+          cd app
+          go vet ./...
+          test -z $(gofmt -l .) || (echo "Arquivos Go precisam de formatação com gofmt" && exit 1)
+
+      - name: Validate Docker Compose Configuration
+        run: docker compose config --quiet
+
+  build-and-deploy:
+    name: Integration & Smoke Tests
+    needs: code-quality-and-security
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -20,14 +43,17 @@ jobs:
       - name: Build and Start Stack (Docker Compose)
         run: docker compose up -d --build
 
-      - name: Wait for Services to Stabilize
-        run: sleep 10
+      - name: Wait for Containers and Healthcheck
+        run: |
+          echo "Aguardando serviços ficarem saudáveis..."
+          sleep 15
 
       - name: Run Smoke Test & Load Generator
         run: python3 scripts/load-generator.py
 
-      - name: Inspect Container Status and Logs
+      - name: Inspect Infrastructure State and Logs
         if: always()
         run: |
           docker compose ps
-          docker compose logs http-server-projeto-korp
+          docker compose logs --tail=50 http-server-projeto-korp
+          docker compose logs --tail=50 nginx
