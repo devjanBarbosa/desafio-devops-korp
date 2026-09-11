@@ -20,3 +20,6 @@ vendor/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Arquivo de variáveis de ambiente com segredos
+.env
