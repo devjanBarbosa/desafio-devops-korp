@@ -1,0 +1,20 @@
+groups:
+  - name: korp_api_alerts
+    rules:
+      - alert: ServiceDown
+        expr: up{job="http-server-projeto-korp"} == 0
+        for: 15s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instância da API Korp fora do ar"
+          description: "O serviço http-server-projeto-korp não respondeu ao scrape do Prometheus por mais de 15 segundos."
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"[45].."}[1m]) > 0.05
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Taxa elevada de erros HTTP na API"
+          description: "A API está respondendo com códigos 4xx ou 5xx em volume acima do esperado."
