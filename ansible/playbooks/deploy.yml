@@ -21,9 +21,9 @@
         path: "{{ item }}"
       loop:
         - "{{ compose_file }}"
-        - "{{ project_root }}/nginx/http-server-projeto-korp.conf"
-        - "{{ project_root }}/monitoring/prometheus/prometheus.yml"
-        - "{{ project_root }}/monitoring/grafana/dashboards/korp-dashboard.json"
+        - "{{ project_root }}/infra/nginx/http-server-projeto-korp.conf"
+        - "{{ project_root }}/infra/monitoring/prometheus/prometheus.yml"
+        - "{{ project_root }}/infra/monitoring/grafana/dashboards/korp-dashboard.json"
         - "{{ project_root }}/scripts/load-generator.py"
       register: config_files
 

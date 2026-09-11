@@ -28,7 +28,7 @@ services:
 
   nginx:
     build:
-      context: ./nginx
+      context: ./infra/nginx
     container_name: nginx-proxy
     networks:
       - korp-network
@@ -46,7 +46,7 @@ services:
 
   prometheus:
     build:
-      context: ./monitoring/prometheus
+      context: ./infra/monitoring/prometheus
     container_name: prometheus
     networks:
       - korp-network
@@ -68,7 +68,7 @@ services:
 
   grafana:
     build:
-      context: ./monitoring/grafana
+      context: ./infra/monitoring/grafana
     container_name: grafana
     networks:
       - korp-network
