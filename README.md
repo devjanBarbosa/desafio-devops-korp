@@ -174,6 +174,12 @@ cp .env.example .env
 
 ---
 
+## 📊 Painel de Observabilidade (Grafana SRE Dashboard)
+
+O dashboard é provisionado automaticamente como código (IaC) e estruturado nos princípios de confiabilidade e Golden Signals:
+
+![Korp SRE Dashboard](docs/images/grafana-dashboard.png)
+
 ## 🧪 Teste de Carga e Validação
 
 Para testar o endpoint manualmente e acompanhar a variação das métricas em tempo real no Grafana e nos alertas do Prometheus:
