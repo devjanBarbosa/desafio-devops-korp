@@ -1,0 +1,22 @@
+﻿# Binários compilados
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+app/http-server-projeto-korp
+
+# Go workspace e cache
+go.work
+vendor/
+
+# Ansible e logs
+*.retry
+*.log
+.ansible/
+
+# Arquivos de IDE e SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
