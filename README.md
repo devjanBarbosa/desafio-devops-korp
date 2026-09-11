@@ -37,16 +37,6 @@ flowchart LR
     %% Acesso aos Dashboards/Painéis
     Client -. "Acesso UI (:9090)" .-> Prom
     Client -. "Acesso UI (:3000)" .-> Grafana
-
-    %% Estilos de Cores Padrão das Ferramentas
-    style API fill:#00ADD8,stroke:#333,stroke-width:2px,color:#fff
-    style Nginx fill:#009639,stroke:#333,stroke-width:2px,color:#fff
-    style Prom fill:#E6522C,stroke:#333,stroke-width:2px,color:#fff
-    style Grafana fill:#F46800,stroke:#333,stroke-width:2px,color:#fff
-    
-    %% Estilo dos Containers de Rede
-    style Docker fill:#f9f9f9,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
-    style SRE fill:#eeeeee,stroke:#999,stroke-width:1px
 ```
 
 ---
