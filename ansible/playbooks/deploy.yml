@@ -1,0 +1,73 @@
+---
+- name: Deploy and Manage Korp DevOps Stack
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    project_root: "/workspace"
+    compose_file: "{{ project_root }}/docker-compose.yml"
+    healthcheck_url: "http://host.docker.internal:80/projeto-korp"
+
+  tasks:
+    - name: 1. Validate Docker Engine connectivity
+      ansible.builtin.command:
+        cmd: docker info
+      register: docker_status
+      changed_when: false
+      failed_when: docker_status.rc != 0
+
+    - name: 2. Verify required configuration files exist
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - "{{ compose_file }}"
+        - "{{ project_root }}/nginx/http-server-projeto-korp.conf"
+        - "{{ project_root }}/monitoring/prometheus/prometheus.yml"
+        - "{{ project_root }}/monitoring/grafana/dashboards/korp-dashboard.json"
+        - "{{ project_root }}/scripts/load-generator.py"
+      register: config_files
+
+    - name: 2.1 Fail if any required configuration file is missing
+      ansible.builtin.fail:
+        msg: "Required configuration file is missing: {{ item.item }}"
+      when: not item.stat.exists
+      loop: "{{ config_files.results }}"
+
+    - name: 3. Build and Start Multi-Container Stack (Docker Compose)
+      community.docker.docker_compose_v2:
+        project_src: "{{ project_root }}"
+        state: present
+        build: always
+      register: compose_output
+
+    - name: 3.1 Display Compose Execution Summary
+      ansible.builtin.debug:
+        msg:
+          - "Compose Action: {{ compose_output.actions | default('Stack up-to-date') }}"
+
+    - name: 4. Perform Healthcheck against Nginx Reverse Proxy
+      ansible.builtin.uri:
+        url: "{{ healthcheck_url }}"
+        method: GET
+        status_code: 200
+        return_content: true
+      register: api_health
+      until: api_health.status == 200
+      retries: 15
+      delay: 3
+
+    - name: 4.1 Display Healthcheck Response
+      ansible.builtin.debug:
+        msg:
+          - "Stack Status: HEALTHY"
+          - "Response: {{ api_health.content }}"
+
+    - name: 5. Execute Automated Load Generator (Telemetry Simulation)
+      ansible.builtin.command:
+        cmd: python3 /workspace/scripts/load-generator.py
+      register: load_output
+      changed_when: true
+
+    - name: 5.1 Display Load Test Execution Log
+      ansible.builtin.debug:
+        msg: "{{ load_output.stdout_lines }}"
