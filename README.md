@@ -7,36 +7,37 @@ Solução completa de engenharia de infraestrutura, observabilidade e automaçã
 ## 🏛️ Visão Geral da Arquitetura
 
 ```mermaid
-flowchart LR
-    %% Entidade Externa
-    Client((Host Machine))
-
-    %% Malha de Rede
-    subgraph Docker [DOCKER BRIDGE: korp-network]
-        direction TB
-        
-        %% Componentes Principais
-        Nginx{"🌐 nginx-proxy"}
-        API["⚙️ http-server-projeto-korp\n(Go 1.22 + SDK)"]
-        
-        %% Agrupamento de Monitoramento
-        subgraph SRE [Observabilidade]
-            Prom["📊 prometheus"]
-            Grafana["📈 grafana"]
-        end
+flowchart TD
+    subgraph Host [HOST MACHINE / PORTAS EXPOSTAS]
+        direction LR
+        P80((:80))
+        P9090((:9090))
+        P3000((:3000))
     end
 
-    %% Fluxo de Tráfego de Negócio
-    Client == "Acesso HTTP (:80)" === Nginx
-    Nginx -- "proxy_pass :8080" --> API
+    subgraph Network [DOCKER BRIDGE: korp-network]
+        direction TB
+        Nginx["🌐 nginx-proxy"]
+        Prom["📊 prometheus"]
+        Grafana["📈 grafana"]
+        API["⚙️ http-server-projeto-korp\n(Go 1.22 + SDK)"]
+    end
 
-    %% Fluxo de Telemetria
-    Prom -- "scrape /metrics (5s)" --> API
-    Grafana -- "query (PromQL)" --> Prom
+    %% Entradas do Host
+    P80 --> Nginx
+    P9090 --> Prom
+    P3000 --> Grafana
 
-    %% Acesso aos Dashboards/Painéis
-    Client -. "Acesso UI (:9090)" .-> Prom
-    Client -. "Acesso UI (:3000)" .-> Grafana
+    %% Comunicação Interna
+    Nginx -- proxy_pass :8080 --> API
+    Prom -- scrape /metrics (5s) --> API
+    Grafana -- query (PromQL) --> Prom
+
+    %% Estilos
+    style API fill:#00ADD8,stroke:#333,stroke-width:2px,color:#fff
+    style Nginx fill:#009639,stroke:#333,stroke-width:2px,color:#fff
+    style Prom fill:#E6522C,stroke:#333,stroke-width:2px,color:#fff
+    style Grafana fill:#F46800,stroke:#333,stroke-width:2px,color:#fff
 ```
 
 ---
