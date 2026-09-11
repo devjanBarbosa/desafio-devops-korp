@@ -9,11 +9,11 @@ Solução completa de engenharia de infraestrutura, observabilidade e automaçã
 A solução é composta por 4 componentes conteinerizados sob uma rede bridge dedicada (`korp-network`), operando sob o princípio do menor privilégio e isolamento de borda:
 
 ```
-                              HOST MACHINE
-        :80                     :9090                    :3000
+                            HOST MACHINE
+        :80                     :9090                     :3000
           |                       |                         |
           v                       v                         v
-   +-------------+         +------------+           +------------+
+   +-------------+         +------------+           +------------+ 
    | nginx-proxy |         | prometheus |<----------|  grafana   |
    +-------------+         +------------+   query   +------------+
           |                       ^
@@ -21,7 +21,7 @@ A solução é composta por 4 componentes conteinerizados sob uma rede bridge de
           v                       |
    +---------------------------------------------------+
    |            http-server-projeto-korp                |
-   |       (Go 1.22 Native API + Prometheus SDK)         |
+   |       (Go 1.22 Native API + Prometheus SDK)        |
    +---------------------------------------------------+
 ```
 
