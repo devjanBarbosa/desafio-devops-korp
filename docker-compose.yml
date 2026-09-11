@@ -1,88 +1,111 @@
-networks:
-  korp-network:
-    name: korp-network
-    driver: bridge
-
 services:
   http-server-projeto-korp:
     build:
       context: ./app
       dockerfile: Dockerfile
     container_name: http-server-projeto-korp
-    networks:
-      - korp-network
-    expose:
-      - "8080"
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 128M
+        reservations:
+          cpus: '0.10'
+          memory: 32M
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/projeto-korp"]
-      interval: 5s
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/projeto-korp || exit 1"]
+      interval: 10s
       timeout: 3s
       retries: 3
-      start_period: 2s
+      start_period: 5s
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - korp-network
 
   nginx:
     build:
       context: ./infra/nginx
+      dockerfile: Dockerfile
     container_name: nginx-proxy
-    networks:
-      - korp-network
+    restart: unless-stopped
     ports:
       - "80:80"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
     depends_on:
       http-server-projeto-korp:
         condition: service_healthy
-    restart: unless-stopped
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - korp-network
 
   prometheus:
     build:
       context: ./infra/monitoring/prometheus
+      dockerfile: Dockerfile
     container_name: prometheus
-    networks:
-      - korp-network
+    restart: unless-stopped
     ports:
       - "9090:9090"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+    depends_on:
+      http-server-projeto-korp:
+        condition: service_healthy
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention.time=7d'
-    depends_on:
-      http-server-projeto-korp:
-        condition: service_healthy
-    restart: unless-stopped
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - korp-network
 
   grafana:
     build:
       context: ./infra/monitoring/grafana
+      dockerfile: Dockerfile
     container_name: grafana
-    networks:
-      - korp-network
+    restart: unless-stopped
     ports:
       - "3000:3000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
     depends_on:
       - prometheus
-    restart: unless-stopped
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - korp-network
+
+networks:
+  korp-network:
+    driver: bridge
