@@ -8,22 +8,37 @@ Solução completa de engenharia de infraestrutura, observabilidade e automaçã
 
 A solução é composta por 4 componentes conteinerizados sob uma rede bridge dedicada (`korp-network`), operando sob o princípio do menor privilégio e isolamento de borda:
 
-```
-                            HOST MACHINE
-        :80                     :9090                     :3000
-          |                       |                         |
-          v                       v                         v
-   +-------------+         +------------+           +------------+ 
-   | nginx-proxy |         | prometheus |<----------|  grafana   |
-   +-------------+         +------------+   query   +------------+
-          |                       ^
-          | proxy_pass :8080      | scrape /metrics (5s)
-          v                       |
-   +---------------------------------------------------+
-   |            http-server-projeto-korp                |
-   |       (Go 1.22 Native API + Prometheus SDK)        |
-   +---------------------------------------------------+
-```
+flowchart TD
+    subgraph Host [HOST MACHINE / PORTAS EXPOSTAS]
+        direction LR
+        P80((:80))
+        P9090((:9090))
+        P3000((:3000))
+    end
+
+    subgraph Network [DOCKER BRIDGE: korp-network]
+        direction TB
+        Nginx["🌐 nginx-proxy"]
+        Prom["📊 prometheus"]
+        Grafana["📈 grafana"]
+        API["⚙️ http-server-projeto-korp\n(Go 1.22 + SDK)"]
+    end
+
+    %% Entradas do Host
+    P80 --> Nginx
+    P9090 --> Prom
+    P3000 --> Grafana
+
+    %% Comunicação Interna
+    Nginx -- proxy_pass :8080 --> API
+    Prom -- scrape /metrics (5s) --> API
+    Grafana -- query (PromQL) --> Prom
+
+    %% Estilos (Opcional para dar destaque)
+    style API fill:#00ADD8,stroke:#333,stroke-width:2px,color:#fff
+    style Nginx fill:#009639,stroke:#333,stroke-width:2px,color:#fff
+    style Prom fill:#E6522C,stroke:#333,stroke-width:2px,color:#fff
+    style Grafana fill:#F46800,stroke:#333,stroke-width:2px,color:#fff
 
 ### Componentes e Decisões de Design
 
